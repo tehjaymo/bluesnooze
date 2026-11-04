@@ -54,9 +54,12 @@ things I needed for daily use:
 
 - **Faster and safer reconnect handling**
 
-  Selected devices are reconnected asynchronously after wake, with a
-  short retry window and duplicate-wake debouncing. This avoids blocking
-  the app while macOS and the Bluetooth stack finish waking up.
+  Selected devices are reconnected asynchronously after wake, with
+  duplicate-wake debouncing. The first attempt waits about a second for
+  the Bluetooth stack to finish waking (an immediate request is often
+  refused), then retries continue for about 25 seconds. A connection
+  attempt that macOS never reports back on only blocks retries for a few
+  seconds, so one lost callback cannot stop the reconnect.
 
 ## What was modernized
 

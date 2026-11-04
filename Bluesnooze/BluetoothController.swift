@@ -18,8 +18,19 @@ final class BluetoothController: NSObject {
     )
     private let powerAPI = BluetoothPowerAPI()
 
-    private let wakeReconnectDelays: [TimeInterval] = [0, 0.5, 1.5, 3.0]
-    private let pendingReconnectTimeout: TimeInterval = 15
+    /// Seconds after wake at which to attempt a reconnect.
+    ///
+    /// The first attempt is delayed because the Bluetooth stack is often
+    /// still finishing its own wake transition when the screen-wake
+    /// notification arrives, and a connection requested at that moment is
+    /// refused. Later attempts cover slow-to-respond headphones.
+    private let wakeReconnectDelays: [TimeInterval] = [1, 2.5, 5, 8, 12, 18, 25]
+
+    /// How long an in-flight `openConnection` blocks further attempts for
+    /// the same device. `IOBluetooth` does not always deliver
+    /// `connectionComplete` when a connection is refused, so this must be
+    /// shorter than the retry window or one lost callback stops all retries.
+    private let pendingReconnectTimeout: TimeInterval = 4
     private var wakeReconnectGeneration = 0
     private var pendingReconnectDeadlines: [String: Date] = [:]
 
@@ -59,7 +70,9 @@ final class BluetoothController: NSObject {
         wakeReconnectGeneration += 1
         let generation = wakeReconnectGeneration
 
-        for delay in wakeReconnectDelays {
+        for (index, delay) in wakeReconnectDelays.enumerated() {
+            let attempt = index + 1
+            let isLastAttempt = attempt == wakeReconnectDelays.count
             DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
                 guard let self = self, self.wakeReconnectGeneration == generation else { return }
 
@@ -70,16 +83,29 @@ final class BluetoothController: NSObject {
                     return !device.isConnected()
                 }
 
+                if remaining.isEmpty {
+                    self.logger.log(
+                        "Reconnect attempt \(attempt, privacy: .public): all devices connected")
+                    self.wakeReconnectGeneration += 1
+                    return
+                }
+
+                guard self.isPoweredOn else {
+                    self.logger.log(
+                        "Reconnect attempt \(attempt, privacy: .public): controller off, waiting")
+                    return
+                }
+
                 for address in remaining {
                     self.connect(addressString: address)
                 }
 
-                let pendingCount = self.pendingReconnectDeadlines.count
+                let summary =
+                    "remaining=\(remaining.count) pending=\(self.pendingReconnectDeadlines.count)"
                 self.logger.log(
-                    "Reconnect: r=\(remaining.count, privacy: .public) p=\(pendingCount, privacy: .public)"
-                )
-                if remaining.isEmpty {
-                    self.wakeReconnectGeneration += 1
+                    "Reconnect attempt \(attempt, privacy: .public): \(summary, privacy: .public)")
+                if isLastAttempt {
+                    self.logger.log("Reconnect: giving up after \(delay, privacy: .public)s")
                 }
             }
         }
