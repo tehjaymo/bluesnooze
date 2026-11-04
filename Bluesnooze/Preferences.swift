@@ -15,7 +15,7 @@ enum Preferences {
     private static let disconnectDevicesOnSleepKey = "disconnectDevicesOnSleep"
     private static let devicesToDisconnectKey = "devicesToDisconnectOnSleep"
     private static let previousDeviceStatesKey = "previousDeviceConnectionStates"
-    private static let appID = "com.oliverpeate.Bluesnooze" as CFString
+    private static let appID = (Bundle.main.bundleIdentifier ?? "net.thejaymo.Bluesnooze") as CFString
 
     static func registerDefaults() {
         UserDefaults.standard.register(defaults: [

@@ -13,7 +13,7 @@ import OSLog
 
 final class BluetoothController: NSObject {
     private let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.oliverpeate.Bluesnooze",
+        subsystem: Bundle.main.bundleIdentifier ?? "net.thejaymo.Bluesnooze",
         category: "bluetooth"
     )
     private let powerAPI = BluetoothPowerAPI()
@@ -160,7 +160,7 @@ private final class BluetoothPowerAPI {
     private typealias SetPowerState = @convention(c) (Int32) -> Void
 
     private let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.oliverpeate.Bluesnooze",
+        subsystem: Bundle.main.bundleIdentifier ?? "net.thejaymo.Bluesnooze",
         category: "bluetooth"
     )
     private let handle: UnsafeMutableRawPointer?

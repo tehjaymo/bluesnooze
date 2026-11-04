@@ -120,8 +120,12 @@ The original upstream release is available at
 
 ## Migrating from upstream
 
-Settings use the same `com.oliverpeate.Bluesnooze` defaults domain, so
-existing preferences are picked up.
+This fork uses its own bundle identifier, `net.thejaymo.Bluesnooze`, so
+settings from the upstream app (`com.oliverpeate.Bluesnooze`) are not
+picked up. Reselect your devices and options once after installing.
+
+The project is set up for local ad-hoc signing (no Apple developer team
+required), so a plain Release build runs on the machine that built it.
 
 If you use **Launch at login**, toggle it once after upgrading. This
 fork uses `SMAppService`, and the old login-item registration does not
@@ -174,19 +178,19 @@ log show --process Bluesnooze --info --last 1h
 
 ```sh
 # Read all settings
-defaults read com.oliverpeate.Bluesnooze
+defaults read net.thejaymo.Bluesnooze
 
 # Always force Bluetooth on at wake
-defaults write com.oliverpeate.Bluesnooze restorePreviousStateOnWake -bool false
+defaults write net.thejaymo.Bluesnooze restorePreviousStateOnWake -bool false
 
 # Per-device disconnect mode
-defaults write com.oliverpeate.Bluesnooze disconnectDevicesOnSleep -bool true
-defaults write com.oliverpeate.Bluesnooze devicesToDisconnectOnSleep \
+defaults write net.thejaymo.Bluesnooze disconnectDevicesOnSleep -bool true
+defaults write net.thejaymo.Bluesnooze devicesToDisconnectOnSleep \
     -array "12-34-4a-f0-19-02" "00-1d-43-aa-bb-cc"
 
 # Hide / show the menu bar icon from the terminal
-defaults write com.oliverpeate.Bluesnooze hideIcon -bool true && killall Bluesnooze
-defaults delete com.oliverpeate.Bluesnooze hideIcon && killall Bluesnooze
+defaults write net.thejaymo.Bluesnooze hideIcon -bool true && killall Bluesnooze
+defaults delete net.thejaymo.Bluesnooze hideIcon && killall Bluesnooze
 
 # You can also show the icon again by launching Bluesnooze normally.
 ```

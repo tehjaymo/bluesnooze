@@ -22,7 +22,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     @IBOutlet weak var hideIconMenuItem: NSMenuItem!
 
     private let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.oliverpeate.Bluesnooze",
+        subsystem: Bundle.main.bundleIdentifier ?? "net.thejaymo.Bluesnooze",
         category: "app"
     )
     private let bluetooth = BluetoothController()
