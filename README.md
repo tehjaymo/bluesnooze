@@ -95,37 +95,71 @@ All settings live in the menu bar icon:
 
 ## Installation
 
-Download the latest release from this repository:
-
-<https://github.com/mre/bluesnooze/releases/latest>
-
-The release build is ad-hoc signed, not notarized. If macOS blocks it,
-you may need to allow it in System Settings.
-
-You can also build it yourself:
+Build and install from source (Xcode required, no Apple developer
+account needed):
 
 ```sh
-git clone https://github.com/mre/bluesnooze.git
+git clone https://github.com/tehjaymo/bluesnooze.git
 cd bluesnooze
-make bootstrap
-make build
+xcodebuild -project Bluesnooze.xcodeproj -scheme Bluesnooze \
+  -configuration Release -derivedDataPath build/DerivedData build
+ditto build/DerivedData/Build/Products/Release/Bluesnooze.app \
+  /Applications/Bluesnooze.app
+open /Applications/Bluesnooze.app
 ```
 
-The built `.app` will be in
-`~/Library/Developer/Xcode/DerivedData/Bluesnooze-*/Build/Products/Debug/`.
+Quit the running copy first when reinstalling over an existing one.
 
-The original upstream release is available at
+Prebuilt releases are available from
+[mre/bluesnooze](https://github.com/mre/bluesnooze/releases/latest),
+but those use the upstream `com.oliverpeate.Bluesnooze` bundle
+identifier, not this fork's. The original app is at
 [odlp/bluesnooze](https://github.com/odlp/bluesnooze) or via
 `brew install bluesnooze`.
+
+## Code signing
+
+The project signs **ad-hoc** (`CODE_SIGN_IDENTITY = "-"`, no
+`DEVELOPMENT_TEAM`). That means:
+
+- **It builds on any Mac with Xcode.** No Apple ID, certificate or team
+  is needed.
+- **It runs on the Mac that built it.** A locally built app has no
+  quarantine flag, so Gatekeeper does not block it.
+- **It is not notarized.** If you copy the app to another Mac (download,
+  AirDrop, zip), Gatekeeper will block it. Allow it under System
+  Settings → Privacy & Security → Open Anyway, or clear the flag with
+  `xattr -dr com.apple.quarantine /Applications/Bluesnooze.app`.
+- **Each rebuild is a new signature.** Ad-hoc signatures are tied to the
+  exact binary, so after reinstalling a rebuilt copy macOS may ask for
+  Bluetooth access again, and **Launch at login** may need toggling off
+  and on. Settings are normally kept, since they are stored by bundle
+  identifier.
+
+`make build` (used by CI) disables signing entirely. That is fine for
+checking the code compiles, but the resulting app lacks its sandbox and
+Bluetooth entitlements, so do not install it. Use the `xcodebuild`
+command above instead.
+
+To sign with your own Apple developer team, which gives a stable
+identity across rebuilds, pass it on the command line:
+
+```sh
+xcodebuild -project Bluesnooze.xcodeproj -scheme Bluesnooze \
+  -configuration Release -derivedDataPath build/DerivedData \
+  CODE_SIGN_STYLE=Automatic CODE_SIGN_IDENTITY="Apple Development" \
+  DEVELOPMENT_TEAM=YOURTEAMID build
+```
+
+or set it under the target's **Signing & Capabilities** in Xcode.
+Distributing to other people additionally needs a Developer ID
+certificate and notarization.
 
 ## Migrating from upstream
 
 This fork uses its own bundle identifier, `net.thejaymo.Bluesnooze`, so
 settings from the upstream app (`com.oliverpeate.Bluesnooze`) are not
 picked up. Reselect your devices and options once after installing.
-
-The project is set up for local ad-hoc signing (no Apple developer team
-required), so a plain Release build runs on the machine that built it.
 
 If you use **Launch at login**, toggle it once after upgrading. This
 fork uses `SMAppService`, and the old login-item registration does not
